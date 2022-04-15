@@ -16929,7 +16929,7 @@ const TRIGGER_COMMITS = {
     WIDGET: COMMIT_MESSAGE_TO_TRIGGER_WIDGET_BUILD,
 };
 const FOLDERS_WHERE_MENDIX_WIDGETS_ARE = IDENTIFY_WIDGETS_FOLDERS;
-const PACKAGES_PATH = `${process.env.GITHUB_WORKSPACE}/${FOLDER_OF_PACKAGES}`;
+const PACKAGES_PATH = `${process.env.GITHUB_WORKSPACE}`;
 const baseDir = process.env.GITHUB_WORKSPACE;
 
 // EXTERNAL MODULE: external "path"
@@ -17037,54 +17037,27 @@ function findBuildFiles(folderPath) {
 // EXTERNAL MODULE: ./node_modules/mime-types/index.js
 var mime_types = __nccwpck_require__(3583);
 ;// CONCATENATED MODULE: ./src/utils.ts
-var utils_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 
 
 
 
-const utils_core = __nccwpck_require__(2186);
 //  Currently Working for MX8 and MX9 widget Structures
 function _widgetFolderStructure(folderName, packageName) {
-    const widgetFolderStructure = {
+    return {
         base: `${PACKAGES_PATH}/${folderName}/${packageName}/`,
         src: `${PACKAGES_PATH}/${folderName}/${packageName}/src`,
         build: `${PACKAGES_PATH}/${folderName}/${packageName}/dist`,
         packageJSON: `${PACKAGES_PATH}/${folderName}/${packageName}/package.json`,
         packageXML: `${PACKAGES_PATH}/${folderName}/${packageName}/src/package.xml`,
     };
-    return widgetFolderStructure;
 }
-/**
- * TODO - Make this less... Uhm... 💩
- */
 function _xmlVersion(rawXML) {
     return rawXML.elements[0].elements[0].attributes.version;
 }
-/**
- * TODO - Make this less... Uhm... 💩
- */
 function _changeXMLVersion(rawXML, version) {
     let y = rawXML;
     y.elements[0].elements[0].attributes.version = version;
     return y;
-}
-function findTagName(tagsArray, tagName) {
-    return utils_awaiter(this, void 0, void 0, function* () {
-        try {
-            return tagsArray.find((tag) => tag === tagName);
-        }
-        catch (error) {
-            utils_core.error(`Error @ findTagName ${error}`);
-        }
-    });
 }
 const assetData = (path) => {
     return {
@@ -17239,81 +17212,69 @@ var action_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _a
 
 const action_core = __nccwpck_require__(2186);
 const git = src_default()({ baseDir: baseDir });
-const repo = github.context.repo;
 const GITHUB_TOKEN = action_core.getInput("GITHUB_TOKEN");
 const action_github = (0,github.getOctokit)(process.env.GITHUB_TOKEN || GITHUB_TOKEN);
 function run() {
     return action_awaiter(this, void 0, void 0, function* () {
-        const { head_commit } = github.context.payload;
-        if (head_commit.message.includes(TRIGGER_COMMITS.WIDGET)) {
-            /**
-             *  Loop Through All Packages.
-             */
-            let packagesToBuild = [];
-            // Sees if PackageFolder is Dir
-            if (external_fs_.lstatSync(PACKAGES_PATH).isDirectory()) {
-                // Reads All Folder in /packages
-                const packagesFolders = yield _readFileAsync(PACKAGES_PATH);
-                for (const packageSub of packagesFolders) {
-                    // if folder has Widgets in and not utils
-                    if (packageSub.name.includes(FOLDERS_WHERE_MENDIX_WIDGETS_ARE)) {
-                        const PACKAGE_PATH = `${process.env.GITHUB_WORKSPACE}/packages/${packageSub.name}`;
-                        // Reads all Folders in a Folder that ends with FOLDERS_WHERE_MENDIX_WIDGETS_ARE
-                        const packageWidgetFolders = yield _readFileAsync(PACKAGE_PATH);
-                        // Loop Over All Widgets (Now Assume We are in Widgets Folder)
-                        for (const packageFolder of packageWidgetFolders) {
-                            // Builds a Helper Object with All the Paths we will need
-                            const widgetStructure = _widgetFolderStructure(packageSub.name, packageFolder.name);
-                            // Reads Package.json
-                            const packageJSON = yield _readPackageJSON(widgetStructure);
-                            // Gets Version in Package.json
-                            const jsonVersion = packageJSON.version;
-                            // Gets Name in Package.json
-                            const packagePackageName = packageJSON.name;
-                            // Reads package.xml
-                            const packageXML = yield _readPackageXML(widgetStructure);
-                            // Parses .xml and and Returns package.xml Version
-                            const xmlVersion = _xmlVersion(packageXML);
-                            // Checks if Json Version and xml matches.
-                            if (xmlVersion !== jsonVersion) {
-                                // Inits Git
-                                yield git.init();
-                                // Set Git Credentials
-                                yield setGITCred(git);
-                                // Update XML to match Package.json and
-                                const newRawPackageXML = yield _changeXMLVersion(packageXML, jsonVersion);
-                                //  converts Js back to xml and writes xml file to disk
-                                yield _writePackageXML(widgetStructure, newRawPackageXML);
-                                /**
-                                 * TODO - Don't think we need this anymore
-                                 * This was done to keep track of projects has been changed.
-                                 */
-                                // Push Package Name To Build Array Keep
-                                yield packagesToBuild.push(widgetStructure);
-                                // Should not be needed for YARN but this installs all NPM modules from this path
-                                yield runInstallCommand(widgetStructure);
-                                // Build New Version
-                                yield runBuildCommand(widgetStructure);
-                                // Tag Name Lerna Created
-                                const tagName = `${packagePackageName}@${jsonVersion}`;
-                                // Uses Github REST to get all Tags
-                                const tagsArray = yield getAllTags(action_github, repo);
-                                // Matches the 2 tags and makes sure the one we expect lerna made is actually is there
-                                const foundTag = yield findTagName(tagsArray, tagName);
-                                if (!foundTag) {
-                                    return action_core.error("No Tag Found");
-                                }
-                                // Commit and Push Code
-                                yield commitGitChanges(git);
-                                // Changes Tag to Release
-                                const release = yield createRelease(action_github, github.context, foundTag);
-                                if (!release) {
-                                    return action_core.error("No Release Found");
-                                }
-                                // Folder name where Widget is Build
-                                const upload = yield uploadBuildFolderToRelease(action_github, widgetStructure, jsonVersion, release);
-                                return upload;
+        console.log(`Running action on path ${PACKAGES_PATH}`);
+        /**
+         *  Loop Through All Packages.
+         */
+        let packagesToBuild = [];
+        // Sees if PackageFolder is Dir
+        if (external_fs_.lstatSync(PACKAGES_PATH).isDirectory()) {
+            // Reads All Folder in /packages
+            const packagesFolders = yield _readFileAsync(PACKAGES_PATH);
+            for (const packageSub of packagesFolders) {
+                console.log(`Checking subpath ${packageSub}`);
+                // if folder has Widgets in and not utils
+                if (packageSub.name.includes(FOLDERS_WHERE_MENDIX_WIDGETS_ARE)) {
+                    const PACKAGE_PATH = `${process.env.GITHUB_WORKSPACE}/${packageSub.name}`;
+                    console.log(`Subpath ${PACKAGE_PATH} is valid`);
+                    // Reads all Folders in a Folder that ends with FOLDERS_WHERE_MENDIX_WIDGETS_ARE
+                    const packageWidgetFolders = yield _readFileAsync(PACKAGE_PATH);
+                    // Loop Over All Widgets (Now Assume We are in Widgets Folder)
+                    for (const packageFolder of packageWidgetFolders) {
+                        // Builds a Helper Object with All the Paths we will need
+                        const widgetStructure = _widgetFolderStructure(packageSub.name, packageFolder.name);
+                        // Reads Package.json
+                        const packageJSON = yield _readPackageJSON(widgetStructure);
+                        // Gets Version in Package.json
+                        const jsonVersion = packageJSON.version;
+                        // Gets Name in Package.json
+                        const packagePackageName = packageJSON.name;
+                        // Reads package.xml
+                        const packageXML = yield _readPackageXML(widgetStructure);
+                        // Parses .xml and and Returns package.xml Version
+                        const xmlVersion = _xmlVersion(packageXML);
+                        // Checks if Json Version and xml matches.
+                        if (xmlVersion !== jsonVersion) {
+                            // Inits Git
+                            yield git.init();
+                            // Set Git Credentials
+                            yield setGITCred(git);
+                            // Update XML to match Package.json and
+                            const newRawPackageXML = yield _changeXMLVersion(packageXML, jsonVersion);
+                            //  converts Js back to xml and writes xml file to disk
+                            yield _writePackageXML(widgetStructure, newRawPackageXML);
+                            // Push Package Name To Build Array Keep
+                            packagesToBuild.push(widgetStructure);
+                            // Should not be needed for YARN but this installs all NPM modules from this path
+                            yield runInstallCommand(widgetStructure);
+                            // Build New Version
+                            yield runBuildCommand(widgetStructure);
+                            // Tag Name Lerna Created
+                            const tagName = `${packagePackageName}@${jsonVersion}`;
+                            // Commit and Push Code
+                            yield commitGitChanges(git);
+                            // Changes Tag to Release
+                            const release = yield createRelease(action_github, github.context, tagName);
+                            if (!release) {
+                                return action_core.error("No Release Found");
                             }
+                            // Folder name where Widget is Build
+                            const upload = yield uploadBuildFolderToRelease(action_github, widgetStructure, jsonVersion, release);
+                            return upload;
                         }
                     }
                 }

@@ -21,5 +21,5 @@ export const TRIGGER_COMMITS: TriggerCommitsInterface = {
   WIDGET: COMMIT_MESSAGE_TO_TRIGGER_WIDGET_BUILD,
 };
 export const FOLDERS_WHERE_MENDIX_WIDGETS_ARE = IDENTIFY_WIDGETS_FOLDERS;
-export const PACKAGES_PATH = `${process.env.GITHUB_WORKSPACE}/${FOLDER_OF_PACKAGES}`;
+export const PACKAGES_PATH = `${process.env.GITHUB_WORKSPACE}`;
 export const baseDir = process.env.GITHUB_WORKSPACE;

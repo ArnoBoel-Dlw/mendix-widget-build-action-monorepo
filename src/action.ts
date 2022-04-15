@@ -36,6 +36,8 @@ const GITHUB_TOKEN = core.getInput("GITHUB_TOKEN");
 const github = getOctokit(process.env.GITHUB_TOKEN || GITHUB_TOKEN);
 
 async function run() {
+  console.log(`Running action on path ${PACKAGES_PATH}`);
+
   /**
    *  Loop Through All Packages.
    */
@@ -46,9 +48,11 @@ async function run() {
     const packagesFolders = await _readFileAsync(PACKAGES_PATH);
 
     for (const packageSub of packagesFolders) {
+      console.log(`Checking subpath ${packageSub}`);
       // if folder has Widgets in and not utils
       if (packageSub.name.includes(FOLDERS_WHERE_MENDIX_WIDGETS_ARE)) {
-        const PACKAGE_PATH = `${process.env.GITHUB_WORKSPACE}/packages/${packageSub.name}`;
+        const PACKAGE_PATH = `${process.env.GITHUB_WORKSPACE}/${packageSub.name}`;
+        console.log(`Subpath ${PACKAGE_PATH} is valid`);
         // Reads all Folders in a Folder that ends with FOLDERS_WHERE_MENDIX_WIDGETS_ARE
         const packageWidgetFolders = await _readFileAsync(PACKAGE_PATH);
         // Loop Over All Widgets (Now Assume We are in Widgets Folder)
