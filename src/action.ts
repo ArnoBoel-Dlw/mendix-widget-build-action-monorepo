@@ -48,6 +48,7 @@ async function run() {
         // Reads all Folders in a Folder that ends with FOLDERS_WHERE_MENDIX_WIDGETS_ARE
         const packageWidgetFolders = await _readFileAsync(PACKAGE_PATH);
         // Loop Over All Widgets (Now Assume We are in Widgets Folder)
+        console.log('Start widget loop');
         for (const packageFolder of packageWidgetFolders) {
           // Builds a Helper Object with All the Paths we will need
           const widgetStructure = _widgetFolderStructure(
@@ -64,8 +65,14 @@ async function run() {
           const packageXML = await _readPackageXML(widgetStructure);
           // Parses .xml and and Returns package.xml Version
           const xmlVersion = _xmlVersion(packageXML);
+          console.log(`Working with widget: ${packagePackageName}`);
+
+          console.log(`Versions of widget:`);
+          console.log(`Json version: ${jsonVersion}`);
+          console.log(`Xml version: ${xmlVersion}`);
           // Checks if Json Version and xml matches.
           if (xmlVersion !== jsonVersion) {
+            console.log(`Version changed, creating release for ${packagePackageName}`);
             // Inits Git
             await git.init();
             // Set Git Credentials
