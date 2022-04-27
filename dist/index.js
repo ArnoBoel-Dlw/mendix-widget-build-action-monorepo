@@ -17272,7 +17272,7 @@ function run() {
                         yield runBuildCommand(widgetStructure);
                         releaseObjects.push({ github: action_github, widgetStructure, jsonVersion });
                     }
-                    const release = yield createRelease(action_github, github.context, 'web widgets');
+                    const release = yield createRelease(action_github, github.context, 'webwidgets');
                     if (!release) {
                         return action_core.error('No Release Found');
                     }

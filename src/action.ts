@@ -93,7 +93,7 @@ async function run() {
           releaseObjects.push({ github, widgetStructure, jsonVersion });
         }
 
-        const release = await createRelease(github, context, 'web widgets');
+        const release = await createRelease(github, context, 'webwidgets');
         if (!release) {
           return core.error('No Release Found');
         }
