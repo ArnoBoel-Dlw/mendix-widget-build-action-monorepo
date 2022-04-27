@@ -94,7 +94,7 @@ async function run() {
             // Tag Name Lerna Created
             const tagName = `${packagePackageName}@${jsonVersion}`;
             // Commit and Push Code
-            await commitGitChanges(git);
+            // await commitGitChanges(git);
             // Changes Tag to Release
             const release = await createRelease(github, context, tagName);
             if (!release) {
