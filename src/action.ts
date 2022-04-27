@@ -29,7 +29,7 @@ const github = getOctokit(process.env.GITHUB_TOKEN || GITHUB_TOKEN);
 
 async function run() {
   console.log(`Running action on path ${PACKAGES_PATH}`);
-
+  console.log(`Test logging`);
   /**
    *  Loop Through All Packages.
    */
