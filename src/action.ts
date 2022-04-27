@@ -1,18 +1,14 @@
-import * as fs from "fs";
-import simpleGit from "simple-git";
-import { getOctokit, context } from "@actions/github";
-import {
-  FOLDERS_WHERE_MENDIX_WIDGETS_ARE,
-  PACKAGES_PATH,
-  baseDir,
-} from "./constants";
+import * as fs from 'fs';
+import simpleGit from 'simple-git';
+import { getOctokit, context } from '@actions/github';
+import { FOLDERS_WHERE_MENDIX_WIDGETS_ARE, PACKAGES_PATH, baseDir } from './constants';
 
 import {
   setGITCred,
   createRelease,
   commitGitChanges,
   uploadBuildFolderToRelease,
-} from "./gitUtils";
+} from './gitUtils';
 
 import {
   _readPackageJSON,
@@ -21,18 +17,14 @@ import {
   runInstallCommand,
   _readPackageXML,
   _writePackageXML,
-} from "./filesystemUtils";
+} from './filesystemUtils';
 
-import {
-  _widgetFolderStructure,
-  _xmlVersion,
-  _changeXMLVersion,
-} from "./utils";
+import { _widgetFolderStructure, _xmlVersion, _changeXMLVersion } from './utils';
 
-const core = require("@actions/core");
+const core = require('@actions/core');
 const git = simpleGit({ baseDir });
 
-const GITHUB_TOKEN = core.getInput("GITHUB_TOKEN");
+const GITHUB_TOKEN = core.getInput('GITHUB_TOKEN');
 const github = getOctokit(process.env.GITHUB_TOKEN || GITHUB_TOKEN);
 
 async function run() {
@@ -59,8 +51,8 @@ async function run() {
         for (const packageFolder of packageWidgetFolders) {
           // Builds a Helper Object with All the Paths we will need
           const widgetStructure = _widgetFolderStructure(
-              packageSub.name,
-              packageFolder.name
+            packageSub.name,
+            packageFolder.name
           );
           // Reads Package.json
           const packageJSON = await _readPackageJSON(widgetStructure);
@@ -79,12 +71,9 @@ async function run() {
             // Set Git Credentials
             await setGITCred(git);
             // Update XML to match Package.json and
-            const newRawPackageXML = await _changeXMLVersion(
-                packageXML,
-                jsonVersion
-            );
+            // const newRawPackageXML = await _changeXMLVersion(packageXML, jsonVersion);
             //  converts Js back to xml and writes xml file to disk
-            await _writePackageXML(widgetStructure, newRawPackageXML);
+            // await _writePackageXML(widgetStructure, newRawPackageXML);
             // Push Package Name To Build Array Keep
             packagesToBuild.push(widgetStructure);
             // Should not be needed for YARN but this installs all NPM modules from this path
@@ -98,14 +87,14 @@ async function run() {
             // Changes Tag to Release
             const release = await createRelease(github, context, tagName);
             if (!release) {
-              return core.error("No Release Found");
+              return core.error('No Release Found');
             }
             // Folder name where Widget is Build
             const upload = await uploadBuildFolderToRelease(
-                github,
-                widgetStructure,
-                jsonVersion,
-                release
+              github,
+              widgetStructure,
+              jsonVersion,
+              release
             );
             return upload;
           }
