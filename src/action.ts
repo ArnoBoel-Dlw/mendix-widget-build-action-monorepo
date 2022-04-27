@@ -40,15 +40,15 @@ async function run() {
     const packagesFolders = await _readFileAsync(PACKAGES_PATH);
 
     for (const packageSub of packagesFolders) {
-      console.log(`Checking subpath ${packageSub}`);
+      console.log(`Checking subpath ${packageSub.name}`);
       // if folder has Widgets in and not utils
       if (packageSub.name.includes(FOLDERS_WHERE_MENDIX_WIDGETS_ARE)) {
         const PACKAGE_PATH = `${process.env.GITHUB_WORKSPACE}/${packageSub.name}`;
         console.log(`Subpath ${PACKAGE_PATH} is valid`);
+        console.log('Start widget loop');
         // Reads all Folders in a Folder that ends with FOLDERS_WHERE_MENDIX_WIDGETS_ARE
         const packageWidgetFolders = await _readFileAsync(PACKAGE_PATH);
         // Loop Over All Widgets (Now Assume We are in Widgets Folder)
-        console.log('Start widget loop');
         for (const packageFolder of packageWidgetFolders) {
           // Builds a Helper Object with All the Paths we will need
           const widgetStructure = _widgetFolderStructure(
