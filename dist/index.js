@@ -16987,18 +16987,18 @@ function _readFileAsync(packagesPath) {
 }
 function _readPackageXML(widgetStructure) {
     return __awaiter(this, void 0, void 0, function* () {
-        const rawPackageXML = yield external_fs_.readFileSync(external_path_.resolve(widgetStructure.packageXML), "utf8");
+        const rawPackageXML = yield fs.readFileSync(path.resolve(widgetStructure.packageXML), "utf8");
         var options = { ignoreComment: true, alwaysChildren: true };
-        var result = lib.xml2js(rawPackageXML, options);
+        var result = convertXML.xml2js(rawPackageXML, options);
         return result;
     });
 }
 function _writePackageXML(widgetStructure, rawNewPackageXML) {
     return __awaiter(this, void 0, void 0, function* () {
         const options = { compact: false, ignoreComment: true, spaces: 4 };
-        const result = yield lib.js2xml(rawNewPackageXML, options);
+        const result = yield convertXML.js2xml(rawNewPackageXML, options);
         try {
-            yield external_fs_.writeFileSync(widgetStructure.packageXML, result);
+            yield fs.writeFileSync(widgetStructure.packageXML, result);
             return;
         }
         catch (error) {
@@ -17243,27 +17243,7 @@ function run() {
                         const packageJSON = yield _readPackageJSON(widgetStructure);
                         // Gets Version in Package.json
                         const jsonVersion = packageJSON.version;
-                        // Reads package.xml
-                        const packageXML = yield _readPackageXML(widgetStructure);
-                        // Parses .xml and and Returns package.xml Version
-                        const xmlVersion = _xmlVersion(packageXML);
-                        console.log(`WIDGET VERSIONS`);
-                        console.log(`Json: ${jsonVersion}`);
-                        console.log(`Xml: ${xmlVersion}`);
-                        // Checks if Json Version and xml matches.
-                        if (xmlVersion !== jsonVersion) {
-                            console.log(`Update version`);
-                            // Inits Git
-                            yield git.init();
-                            // Set Git Credentials
-                            yield setGITCred(git);
-                            // Update XML to match Package.json and
-                            const newRawPackageXML = yield _changeXMLVersion(packageXML, jsonVersion);
-                            //  converts Js back to xml and writes xml file to disk
-                            yield _writePackageXML(widgetStructure, newRawPackageXML);
-                        }
-                        // Always build widget so that all widget mpk's are bundled in 1 release
-                        console.log(`Build widget`);
+                        // Build widget           console.log(`Build widget`);
                         // Push Package Name To Build Array Keep
                         packagesToBuild.push(widgetStructure);
                         // Should not be needed for YARN but this installs all NPM modules from this path
@@ -17276,6 +17256,7 @@ function run() {
                     if (!release) {
                         return action_core.error('No Release Found');
                     }
+                    // Upload all mpk's to release
                     console.log(`Upload all widget files to release`);
                     releaseObjects.forEach((widget) => action_awaiter(this, void 0, void 0, function* () { return yield uploadBuildFolderToRelease(Object.assign(Object.assign({}, widget), { release })); }));
                 }

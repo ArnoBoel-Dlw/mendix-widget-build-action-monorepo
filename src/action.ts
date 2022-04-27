@@ -61,28 +61,7 @@ async function run() {
           // Gets Version in Package.json
           const jsonVersion = packageJSON.version;
 
-          // Reads package.xml
-          const packageXML = await _readPackageXML(widgetStructure);
-          // Parses .xml and and Returns package.xml Version
-          const xmlVersion = _xmlVersion(packageXML);
-          console.log(`WIDGET VERSIONS`);
-          console.log(`Json: ${jsonVersion}`);
-          console.log(`Xml: ${xmlVersion}`);
-          // Checks if Json Version and xml matches.
-          if (xmlVersion !== jsonVersion) {
-            console.log(`Update version`);
-            // Inits Git
-            await git.init();
-            // Set Git Credentials
-            await setGITCred(git);
-            // Update XML to match Package.json and
-            const newRawPackageXML = await _changeXMLVersion(packageXML, jsonVersion);
-            //  converts Js back to xml and writes xml file to disk
-            await _writePackageXML(widgetStructure, newRawPackageXML);
-          }
-          // Always build widget so that all widget mpk's are bundled in 1 release
-
-          console.log(`Build widget`);
+          // Build widget           console.log(`Build widget`);
           // Push Package Name To Build Array Keep
           packagesToBuild.push(widgetStructure);
           // Should not be needed for YARN but this installs all NPM modules from this path
@@ -98,6 +77,7 @@ async function run() {
           return core.error('No Release Found');
         }
 
+        // Upload all mpk's to release
         console.log(`Upload all widget files to release`);
         releaseObjects.forEach(
           async (widget) => await uploadBuildFolderToRelease({ ...widget, release })
