@@ -47,6 +47,7 @@ async function run() {
         console.log(`Subpath ${PACKAGE_PATH} is valid`);
         // Reads all Folders in a Folder that ends with FOLDERS_WHERE_MENDIX_WIDGETS_ARE
         const packageWidgetFolders = await _readFileAsync(PACKAGE_PATH);
+        const releaseObjects = [];
         // Loop Over All Widgets (Now Assume We are in Widgets Folder)
         for (const packageFolder of packageWidgetFolders) {
           console.log(`Checking widget ${packageFolder.name}`);
@@ -59,8 +60,7 @@ async function run() {
           const packageJSON = await _readPackageJSON(widgetStructure);
           // Gets Version in Package.json
           const jsonVersion = packageJSON.version;
-          // Gets Name in Package.json
-          const packagePackageName = packageJSON.name;
+
           // Reads package.xml
           const packageXML = await _readPackageXML(widgetStructure);
           // Parses .xml and and Returns package.xml Version
@@ -70,7 +70,7 @@ async function run() {
           console.log(`Xml: ${xmlVersion}`);
           // Checks if Json Version and xml matches.
           if (xmlVersion !== jsonVersion) {
-            console.log(`Building widget`);
+            console.log(`Update version`);
             // Inits Git
             await git.init();
             // Set Git Credentials
@@ -79,31 +79,29 @@ async function run() {
             const newRawPackageXML = await _changeXMLVersion(packageXML, jsonVersion);
             //  converts Js back to xml and writes xml file to disk
             await _writePackageXML(widgetStructure, newRawPackageXML);
-            // Push Package Name To Build Array Keep
-            packagesToBuild.push(widgetStructure);
-            // Should not be needed for YARN but this installs all NPM modules from this path
-            await runInstallCommand(widgetStructure);
-            // Build New Version
-            await runBuildCommand(widgetStructure);
-            // Tag Name Lerna Created
-            const tagName = `${packagePackageName}@${jsonVersion}`;
-            // Commit and Push Code
-            // await commitGitChanges(git);
-            // Changes Tag to Release
-            const release = await createRelease(github, context, tagName);
-            if (!release) {
-              return core.error('No Release Found');
-            }
-            // Folder name where Widget is Build
-            const upload = await uploadBuildFolderToRelease(
-              github,
-              widgetStructure,
-              jsonVersion,
-              release
-            );
-            return upload;
           }
+          // Always build widget so that all widget mpk's are bundled in 1 release
+
+          console.log(`Build widget`);
+          // Push Package Name To Build Array Keep
+          packagesToBuild.push(widgetStructure);
+          // Should not be needed for YARN but this installs all NPM modules from this path
+          await runInstallCommand(widgetStructure);
+          // Build New Version
+          await runBuildCommand(widgetStructure);
+
+          releaseObjects.push({ github, widgetStructure, jsonVersion });
         }
+
+        const release = await createRelease(github, context, 'web widgets');
+        if (!release) {
+          return core.error('No Release Found');
+        }
+
+        console.log(`Upload all widget files to release`);
+        releaseObjects.forEach(
+          async (widget) => await uploadBuildFolderToRelease({ ...widget, release })
+        );
       }
     }
   }

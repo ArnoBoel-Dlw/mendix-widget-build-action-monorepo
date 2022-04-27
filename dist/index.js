@@ -17083,11 +17083,11 @@ var gitUtils_awaiter = (undefined && undefined.__awaiter) || function (thisArg, 
 const gitUtils_core = __nccwpck_require__(2186);
 function setGITCred(git) {
     return gitUtils_awaiter(this, void 0, void 0, function* () {
-        const COMMIT_AUTHOR_NAME = gitUtils_core.getInput("bot_author_name") || "BOTTY";
-        const COMMIT_AUTHOR_EMAIL = gitUtils_core.getInput("bot_author_email") || "BOT@BOTTY.inc";
+        const COMMIT_AUTHOR_NAME = gitUtils_core.getInput('bot_author_name') || 'BOTTY';
+        const COMMIT_AUTHOR_EMAIL = gitUtils_core.getInput('bot_author_email') || 'BOT@BOTTY.inc';
         try {
-            yield git.addConfig("user.name", COMMIT_AUTHOR_NAME);
-            yield git.addConfig("user.email", COMMIT_AUTHOR_EMAIL);
+            yield git.addConfig('user.name', COMMIT_AUTHOR_NAME);
+            yield git.addConfig('user.email', COMMIT_AUTHOR_EMAIL);
             return;
         }
         catch (error) {
@@ -17113,23 +17113,23 @@ function createRelease(github, context, tag) {
 }
 function commitGitChanges(git) {
     return gitUtils_awaiter(this, void 0, void 0, function* () {
-        const BOT_MESSAGE = gitUtils_core.getInput("bot_commit_message") || "BOT COMMIT";
-        const COMMIT_AUTHOR_NAME = gitUtils_core.getInput("bot_author_name") || "BOTTY";
-        const COMMIT_AUTHOR_EMAIL = gitUtils_core.getInput("bot_author_email") || "BOT@BOTTY.inc";
+        const BOT_MESSAGE = gitUtils_core.getInput('bot_commit_message') || 'BOT COMMIT';
+        const COMMIT_AUTHOR_NAME = gitUtils_core.getInput('bot_author_name') || 'BOTTY';
+        const COMMIT_AUTHOR_EMAIL = gitUtils_core.getInput('bot_author_email') || 'BOT@BOTTY.inc';
         try {
-            yield git.add("./*", (err) => {
+            yield git.add('./*', (err) => {
                 if (err) {
                     gitUtils_core.error(`Error @ add ${err}`);
                 }
             });
             yield git.commit(BOT_MESSAGE, undefined, {
-                "--author": `"${COMMIT_AUTHOR_NAME} <${COMMIT_AUTHOR_EMAIL}>"`,
+                '--author': `"${COMMIT_AUTHOR_NAME} <${COMMIT_AUTHOR_EMAIL}>"`,
             }, (err) => {
                 if (err) {
                     gitUtils_core.error(`Error @ commit ${err}`);
                 }
             });
-            yield git.push("origin", "main", ["--force"], (err) => {
+            yield git.push('origin', 'main', ['--force'], (err) => {
                 if (err) {
                     gitUtils_core.error(`Error @ push ${err}`);
                 }
@@ -17158,7 +17158,7 @@ function getAllTags(github, repo) {
         }
     });
 }
-function uploadBuildFolderToRelease(github, widgetStructure, jsonVersion, release) {
+function uploadBuildFolderToRelease({ github, widgetStructure, jsonVersion, release, }) {
     return gitUtils_awaiter(this, void 0, void 0, function* () {
         try {
             const FOLDER_WHERE_RELEASE_IS = `${widgetStructure.build}/${jsonVersion}`;
@@ -17171,8 +17171,8 @@ function uploadBuildFolderToRelease(github, widgetStructure, jsonVersion, releas
                 const { name, fileStream, contentType } = assetData(filePath);
                 // Set Headers for Upload
                 const headers = {
-                    "content-type": contentType,
-                    "content-length": external_fs_.statSync(filePath).size,
+                    'content-type': contentType,
+                    'content-length': external_fs_.statSync(filePath).size,
                 };
                 // Uploads Built to Release
                 const uploadAssetResponse = yield github.repos.uploadReleaseAsset(
@@ -17233,6 +17233,7 @@ function run() {
                     console.log(`Subpath ${PACKAGE_PATH} is valid`);
                     // Reads all Folders in a Folder that ends with FOLDERS_WHERE_MENDIX_WIDGETS_ARE
                     const packageWidgetFolders = yield _readFileAsync(PACKAGE_PATH);
+                    const releaseObjects = [];
                     // Loop Over All Widgets (Now Assume We are in Widgets Folder)
                     for (const packageFolder of packageWidgetFolders) {
                         console.log(`Checking widget ${packageFolder.name}`);
@@ -17242,8 +17243,6 @@ function run() {
                         const packageJSON = yield _readPackageJSON(widgetStructure);
                         // Gets Version in Package.json
                         const jsonVersion = packageJSON.version;
-                        // Gets Name in Package.json
-                        const packagePackageName = packageJSON.name;
                         // Reads package.xml
                         const packageXML = yield _readPackageXML(widgetStructure);
                         // Parses .xml and and Returns package.xml Version
@@ -17253,7 +17252,7 @@ function run() {
                         console.log(`Xml: ${xmlVersion}`);
                         // Checks if Json Version and xml matches.
                         if (xmlVersion !== jsonVersion) {
-                            console.log(`Building widget`);
+                            console.log(`Update version`);
                             // Inits Git
                             yield git.init();
                             // Set Git Credentials
@@ -17262,26 +17261,23 @@ function run() {
                             const newRawPackageXML = yield _changeXMLVersion(packageXML, jsonVersion);
                             //  converts Js back to xml and writes xml file to disk
                             yield _writePackageXML(widgetStructure, newRawPackageXML);
-                            // Push Package Name To Build Array Keep
-                            packagesToBuild.push(widgetStructure);
-                            // Should not be needed for YARN but this installs all NPM modules from this path
-                            yield runInstallCommand(widgetStructure);
-                            // Build New Version
-                            yield runBuildCommand(widgetStructure);
-                            // Tag Name Lerna Created
-                            const tagName = `${packagePackageName}@${jsonVersion}`;
-                            // Commit and Push Code
-                            // await commitGitChanges(git);
-                            // Changes Tag to Release
-                            const release = yield createRelease(action_github, github.context, tagName);
-                            if (!release) {
-                                return action_core.error('No Release Found');
-                            }
-                            // Folder name where Widget is Build
-                            const upload = yield uploadBuildFolderToRelease(action_github, widgetStructure, jsonVersion, release);
-                            return upload;
                         }
+                        // Always build widget so that all widget mpk's are bundled in 1 release
+                        console.log(`Build widget`);
+                        // Push Package Name To Build Array Keep
+                        packagesToBuild.push(widgetStructure);
+                        // Should not be needed for YARN but this installs all NPM modules from this path
+                        yield runInstallCommand(widgetStructure);
+                        // Build New Version
+                        yield runBuildCommand(widgetStructure);
+                        releaseObjects.push({ github: action_github, widgetStructure, jsonVersion });
                     }
+                    const release = yield createRelease(action_github, github.context, 'web widgets');
+                    if (!release) {
+                        return action_core.error('No Release Found');
+                    }
+                    console.log(`Upload all widget files to release`);
+                    releaseObjects.forEach((widget) => action_awaiter(this, void 0, void 0, function* () { return yield uploadBuildFolderToRelease(Object.assign(Object.assign({}, widget), { release })); }));
                 }
             }
         }
