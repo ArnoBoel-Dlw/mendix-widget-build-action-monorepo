@@ -17212,7 +17212,7 @@ var action_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _a
 
 const action_core = __nccwpck_require__(2186);
 const git = src_default()({ baseDir: baseDir });
-const GITHUB_TOKEN = action_core.getInput("GITHUB_TOKEN");
+const GITHUB_TOKEN = action_core.getInput('GITHUB_TOKEN');
 const action_github = (0,github.getOctokit)(process.env.GITHUB_TOKEN || GITHUB_TOKEN);
 function run() {
     return action_awaiter(this, void 0, void 0, function* () {
@@ -17226,7 +17226,7 @@ function run() {
             // Reads All Folder in /packages
             const packagesFolders = yield _readFileAsync(PACKAGES_PATH);
             for (const packageSub of packagesFolders) {
-                console.log(`Checking subpath ${packageSub}`);
+                console.log(`Checking subpath ${packageSub.name}`);
                 // if folder has Widgets in and not utils
                 if (packageSub.name.includes(FOLDERS_WHERE_MENDIX_WIDGETS_ARE)) {
                     const PACKAGE_PATH = `${process.env.GITHUB_WORKSPACE}/${packageSub.name}`;
@@ -17266,11 +17266,11 @@ function run() {
                             // Tag Name Lerna Created
                             const tagName = `${packagePackageName}@${jsonVersion}`;
                             // Commit and Push Code
-                            yield commitGitChanges(git);
+                            // await commitGitChanges(git);
                             // Changes Tag to Release
                             const release = yield createRelease(action_github, github.context, tagName);
                             if (!release) {
-                                return action_core.error("No Release Found");
+                                return action_core.error('No Release Found');
                             }
                             // Folder name where Widget is Build
                             const upload = yield uploadBuildFolderToRelease(action_github, widgetStructure, jsonVersion, release);
