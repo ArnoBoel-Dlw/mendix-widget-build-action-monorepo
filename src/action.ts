@@ -49,6 +49,7 @@ async function run() {
         const packageWidgetFolders = await _readFileAsync(PACKAGE_PATH);
         // Loop Over All Widgets (Now Assume We are in Widgets Folder)
         for (const packageFolder of packageWidgetFolders) {
+          console.log(`Checking widget ${packageFolder.name}`);
           // Builds a Helper Object with All the Paths we will need
           const widgetStructure = _widgetFolderStructure(
             packageSub.name,
@@ -64,8 +65,12 @@ async function run() {
           const packageXML = await _readPackageXML(widgetStructure);
           // Parses .xml and and Returns package.xml Version
           const xmlVersion = _xmlVersion(packageXML);
+          console.log(`WIDGET VERSIONS`);
+          console.log(`Json: ${jsonVersion}`);
+          console.log(`Xml: ${xmlVersion}`);
           // Checks if Json Version and xml matches.
           if (xmlVersion !== jsonVersion) {
+            console.log(`Building widget`);
             // Inits Git
             await git.init();
             // Set Git Credentials
