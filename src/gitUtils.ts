@@ -16,6 +16,31 @@ export async function setGITCred(git) {
   }
 }
 
+export async function getLatestTag(github, context) {
+  try {
+    const { owner, repo } = context.repo;
+    const { data } = await github.request('GET /repos/{owner}/{repo}/releases', {
+      owner,
+      repo,
+    });
+
+    if (data?.length) {
+      console.log(`Releases response: ${data}`);
+      const maxDate = new Date(Math.max(...data.map((e) => new Date(e.created_at))));
+      console.log(`Max date: ${maxDate}`);
+      const latestRelease = data.find((r) => new Date(r.created_at) === maxDate);
+      console.log(`Latest release: ${latestRelease}`);
+      if (latestRelease) {
+        return latestRelease.tag_name;
+      }
+
+      core.error(`Error @ getLatestTag`);
+    }
+  } catch (error) {
+    core.error(`Error @ getLatestTag ${error}`);
+  }
+}
+
 export async function createRelease(github, context, tag: string) {
   try {
     const { owner, repo } = context.repo;

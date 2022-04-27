@@ -3,12 +3,7 @@ import simpleGit from 'simple-git';
 import { getOctokit, context } from '@actions/github';
 import { FOLDERS_WHERE_MENDIX_WIDGETS_ARE, PACKAGES_PATH, baseDir } from './constants';
 
-import {
-  setGITCred,
-  createRelease,
-  commitGitChanges,
-  uploadBuildFolderToRelease,
-} from './gitUtils';
+import { createRelease, uploadBuildFolderToRelease, getLatestTag } from './gitUtils';
 
 import {
   _readPackageJSON,
@@ -22,7 +17,6 @@ import {
 import { _widgetFolderStructure, _xmlVersion, _changeXMLVersion } from './utils';
 
 const core = require('@actions/core');
-const git = simpleGit({ baseDir });
 
 const GITHUB_TOKEN = core.getInput('GITHUB_TOKEN');
 const github = getOctokit(process.env.GITHUB_TOKEN || GITHUB_TOKEN);
@@ -41,6 +35,7 @@ async function run() {
 
     for (const packageSub of packagesFolders) {
       console.log(`Checking subpath ${packageSub.name}`);
+
       // if folder has Widgets in and not utils
       if (packageSub.name.includes(FOLDERS_WHERE_MENDIX_WIDGETS_ARE)) {
         const PACKAGE_PATH = `${process.env.GITHUB_WORKSPACE}/${packageSub.name}`;
@@ -71,8 +66,9 @@ async function run() {
 
           releaseObjects.push({ github, widgetStructure, jsonVersion });
         }
-
-        const release = await createRelease(github, context, 'webwidgets');
+        const latestTag = getLatestTag(github, context);
+        console.log(`Latest tag: ${latestTag}`);
+        const release = await createRelease(github, context, 'v0.0.1');
         if (!release) {
           return core.error('No Release Found');
         }
