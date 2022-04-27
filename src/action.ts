@@ -1,14 +1,10 @@
 import * as fs from 'fs';
 import simpleGit from 'simple-git';
 import { getOctokit, context } from '@actions/github';
+
 import { FOLDERS_WHERE_MENDIX_WIDGETS_ARE, PACKAGES_PATH, baseDir } from './constants';
 
-import {
-  setGITCred,
-  createRelease,
-  commitGitChanges,
-  uploadBuildFolderToRelease,
-} from './gitUtils';
+import { setGITCred, createRelease, uploadBuildFolderToRelease } from './gitUtils';
 
 import {
   _readPackageJSON,
@@ -29,7 +25,8 @@ const github = getOctokit(process.env.GITHUB_TOKEN || GITHUB_TOKEN);
 
 async function run() {
   console.log(`Running action on path ${PACKAGES_PATH}`);
-  console.log(`Test logging`);
+  core.info(`Test logging`);
+
   /**
    *  Loop Through All Packages.
    */
@@ -77,10 +74,7 @@ async function run() {
             await git.init();
             // Set Git Credentials
             await setGITCred(git);
-            // Update XML to match Package.json and
-            // const newRawPackageXML = await _changeXMLVersion(packageXML, jsonVersion);
-            //  converts Js back to xml and writes xml file to disk
-            // await _writePackageXML(widgetStructure, newRawPackageXML);
+
             // Push Package Name To Build Array Keep
             packagesToBuild.push(widgetStructure);
             // Should not be needed for YARN but this installs all NPM modules from this path
@@ -89,8 +83,7 @@ async function run() {
             await runBuildCommand(widgetStructure);
             // Tag Name Lerna Created
             const tagName = `${packagePackageName}@${jsonVersion}`;
-            // Commit and Push Code
-            // await commitGitChanges(git);
+
             // Changes Tag to Release
             const release = await createRelease(github, context, tagName);
             if (!release) {
