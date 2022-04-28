@@ -11295,7 +11295,6 @@ function getTagName(github, context) {
             });
             if (data === null || data === void 0 ? void 0 : data.length) {
                 const latestRelease = data.reduce((a, b) => (a.created_at > b.created_at ? a : b));
-                console.log(`Latest release:`, latestRelease);
                 return getNewTag(latestRelease === null || latestRelease === void 0 ? void 0 : latestRelease.tag_name);
             }
         }
@@ -11305,7 +11304,7 @@ function getTagName(github, context) {
     });
 }
 function getNewTag(latestTag) {
-    console.log(`Get new tag: ${latestTag}`);
+    console.log(`Latest tag: ${latestTag}`);
     if (latestTag) {
         // TODO: check if major or minor update
         // Else => patch update
@@ -11474,7 +11473,7 @@ function run() {
                     }
                     console.log('CREATING RELEASE');
                     const tagName = yield getTagName(action_github, github.context);
-                    console.log('New tag name:', tagName);
+                    console.log('New tag:', tagName);
                     const release = yield createRelease(action_github, github.context, tagName);
                     if (!release) {
                         return action_core.error('No Release Found');

@@ -27,7 +27,6 @@ export async function getTagName(github, context) {
 
     if (data?.length) {
       const latestRelease = data.reduce((a, b) => (a.created_at > b.created_at ? a : b));
-      console.log(`Latest release:`, latestRelease);
 
       return getNewTag(latestRelease?.tag_name);
     }
@@ -37,7 +36,7 @@ export async function getTagName(github, context) {
 }
 
 export function getNewTag(latestTag) {
-  console.log(`Get new tag: ${latestTag}`);
+  console.log(`Latest tag: ${latestTag}`);
   if (latestTag) {
     // TODO: check if major or minor update
 

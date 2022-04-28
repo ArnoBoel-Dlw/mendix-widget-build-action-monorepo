@@ -69,7 +69,7 @@ async function run() {
 
         console.log('CREATING RELEASE');
         const tagName = await getTagName(github, context);
-        console.log('New tag name:', tagName);
+        console.log('New tag:', tagName);
 
         const release = await createRelease(github, context, tagName);
 
