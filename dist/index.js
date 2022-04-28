@@ -11114,15 +11114,17 @@ var external_fs_ = __nccwpck_require__(5747);
 var github = __nccwpck_require__(5438);
 ;// CONCATENATED MODULE: ./src/constants.ts
 const core = __nccwpck_require__(2186);
-const COMMIT_MESSAGE_TO_TRIGGER_WIDGET_BUILD = core.getInput("commit_message_trigger") || "publish new Package";
-const FOLDER_OF_PACKAGES = core.getInput("packages_folder") || "packages";
-const IDENTIFY_WIDGETS_FOLDERS = core.getInput("identify_widgets_folders") || "-widgets";
+const COMMIT_MESSAGE_TO_TRIGGER_WIDGET_BUILD = core.getInput('commit_message_trigger') || 'publish new Package';
+const FOLDER_OF_PACKAGES = core.getInput('packages_folder') || 'packages';
+const IDENTIFY_WIDGETS_FOLDERS = core.getInput('identify_widgets_folders') || '-widgets';
+const RELEASE_VERSION = core.getInput('release_version');
 const TRIGGER_COMMITS = {
     WIDGET: COMMIT_MESSAGE_TO_TRIGGER_WIDGET_BUILD,
 };
 const FOLDERS_WHERE_MENDIX_WIDGETS_ARE = IDENTIFY_WIDGETS_FOLDERS;
 const PACKAGES_PATH = `${process.env.GITHUB_WORKSPACE}`;
 const baseDir = process.env.GITHUB_WORKSPACE;
+const releaseVersion = RELEASE_VERSION;
 
 // EXTERNAL MODULE: external "path"
 var external_path_ = __nccwpck_require__(5622);
@@ -11272,6 +11274,7 @@ var gitUtils_awaiter = (undefined && undefined.__awaiter) || function (thisArg, 
 
 
 
+
 const gitUtils_core = __nccwpck_require__(2186);
 function setGITCred(git) {
     return gitUtils_awaiter(this, void 0, void 0, function* () {
@@ -11287,7 +11290,7 @@ function setGITCred(git) {
         }
     });
 }
-function getLatestTag(github, context) {
+function getTagName(github, context) {
     return gitUtils_awaiter(this, void 0, void 0, function* () {
         try {
             const { owner, repo } = context.repo;
@@ -11301,16 +11304,28 @@ function getLatestTag(github, context) {
                 console.log(`Max date: ${maxDate}`);
                 const latestRelease = data.find((r) => new Date(r.created_at) === maxDate);
                 console.log(`Latest release: ${latestRelease}`);
-                if (latestRelease) {
-                    return latestRelease.tag_name;
+                if (latestRelease === null || latestRelease === void 0 ? void 0 : latestRelease.tag_name) {
+                    return getNewTag(latestRelease.tag_name);
                 }
                 gitUtils_core.error(`Error @ getLatestTag`);
+                return undefined;
             }
         }
         catch (error) {
             gitUtils_core.error(`Error @ getLatestTag ${error}`);
         }
     });
+}
+function getNewTag(latestTag) {
+    if (latestTag) {
+        // TODO: check if major or minor update
+        // Else => patch update
+        const indexLastDot = latestTag.lastIndexOf('.');
+        const before = latestTag.slice(0, indexLastDot);
+        const after = latestTag.slice(indexLastDot + 1);
+        return `${before}.${after + 1}`;
+    }
+    return releaseVersion;
 }
 function createRelease(github, context, tag) {
     return gitUtils_awaiter(this, void 0, void 0, function* () {
@@ -11467,9 +11482,9 @@ function run() {
                         yield runBuildCommand(widgetStructure);
                         releaseObjects.push({ github: action_github, widgetStructure, jsonVersion });
                     }
-                    const latestTag = getLatestTag(action_github, github.context);
-                    console.log(`Latest tag: ${latestTag}`);
-                    const release = yield createRelease(action_github, github.context, 'v0.0.1');
+                    const tagName = yield getTagName(action_github, github.context);
+                    console.log(`New tag name: ${tagName}`);
+                    const release = yield createRelease(action_github, github.context, tagName);
                     if (!release) {
                         return action_core.error('No Release Found');
                     }

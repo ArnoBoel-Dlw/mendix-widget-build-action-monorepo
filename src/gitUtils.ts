@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import { releaseVersion } from './constants';
 
 import { findBuildFiles } from './filesystemUtils';
 import { assetData } from './utils';
@@ -16,7 +17,7 @@ export async function setGITCred(git) {
   }
 }
 
-export async function getLatestTag(github, context) {
+export async function getTagName(github, context) {
   try {
     const { owner, repo } = context.repo;
     const { data } = await github.request('GET /repos/{owner}/{repo}/releases', {
@@ -30,15 +31,32 @@ export async function getLatestTag(github, context) {
       console.log(`Max date: ${maxDate}`);
       const latestRelease = data.find((r) => new Date(r.created_at) === maxDate);
       console.log(`Latest release: ${latestRelease}`);
-      if (latestRelease) {
-        return latestRelease.tag_name;
+      if (latestRelease?.tag_name) {
+        return getNewTag(latestRelease.tag_name);
       }
 
       core.error(`Error @ getLatestTag`);
+      return undefined;
     }
   } catch (error) {
     core.error(`Error @ getLatestTag ${error}`);
   }
+}
+
+export function getNewTag(latestTag) {
+  if (latestTag) {
+    // TODO: check if major or minor update
+
+    // Else => patch update
+    const indexLastDot = latestTag.lastIndexOf('.');
+
+    const before = latestTag.slice(0, indexLastDot);
+    const after = latestTag.slice(indexLastDot + 1);
+
+    return `${before}.${after + 1}`;
+  }
+
+  return releaseVersion;
 }
 
 export async function createRelease(github, context, tag: string) {

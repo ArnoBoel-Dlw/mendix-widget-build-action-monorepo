@@ -1,11 +1,12 @@
-const core = require("@actions/core");
+const core = require('@actions/core');
 
 const COMMIT_MESSAGE_TO_TRIGGER_WIDGET_BUILD =
-  core.getInput("commit_message_trigger") || "publish new Package";
+  core.getInput('commit_message_trigger') || 'publish new Package';
 
-const FOLDER_OF_PACKAGES = core.getInput("packages_folder") || "packages";
-const IDENTIFY_WIDGETS_FOLDERS =
-  core.getInput("identify_widgets_folders") || "-widgets";
+const FOLDER_OF_PACKAGES = core.getInput('packages_folder') || 'packages';
+const IDENTIFY_WIDGETS_FOLDERS = core.getInput('identify_widgets_folders') || '-widgets';
+
+const RELEASE_VERSION = core.getInput('release_version');
 export interface WidgetFolderStructureInterface {
   base: string;
   build: string;
@@ -23,3 +24,4 @@ export const TRIGGER_COMMITS: TriggerCommitsInterface = {
 export const FOLDERS_WHERE_MENDIX_WIDGETS_ARE = IDENTIFY_WIDGETS_FOLDERS;
 export const PACKAGES_PATH = `${process.env.GITHUB_WORKSPACE}`;
 export const baseDir = process.env.GITHUB_WORKSPACE;
+export const releaseVersion = RELEASE_VERSION;

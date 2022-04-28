@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import simpleGit from 'simple-git';
 import { getOctokit, context } from '@actions/github';
-import { FOLDERS_WHERE_MENDIX_WIDGETS_ARE, PACKAGES_PATH, baseDir } from './constants';
+import { FOLDERS_WHERE_MENDIX_WIDGETS_ARE, PACKAGES_PATH } from './constants';
 
-import { createRelease, uploadBuildFolderToRelease, getLatestTag } from './gitUtils';
+import { createRelease, uploadBuildFolderToRelease, getTagName } from './gitUtils';
 
 import {
   _readPackageJSON,
@@ -66,9 +66,10 @@ async function run() {
 
           releaseObjects.push({ github, widgetStructure, jsonVersion });
         }
-        const latestTag = getLatestTag(github, context);
-        console.log(`Latest tag: ${latestTag}`);
-        const release = await createRelease(github, context, 'v0.0.1');
+
+        const tagName = await getTagName(github, context);
+        console.log(`New tag name: ${tagName}`);
+        const release = await createRelease(github, context, tagName);
         if (!release) {
           return core.error('No Release Found');
         }
