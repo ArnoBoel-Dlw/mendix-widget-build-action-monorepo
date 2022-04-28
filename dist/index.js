@@ -11294,9 +11294,8 @@ function getTagName(github, context) {
                 repo,
             });
             if (data === null || data === void 0 ? void 0 : data.length) {
-                console.log(`Releases response:`, data);
                 const latestRelease = data.reduce((a, b) => (a.created_at > b.created_at ? a : b));
-                console.log(`Latest release: ${latestRelease}`);
+                console.log(`Latest release:`, latestRelease);
                 return getNewTag(latestRelease === null || latestRelease === void 0 ? void 0 : latestRelease.tag_name);
             }
         }
@@ -11313,7 +11312,7 @@ function getNewTag(latestTag) {
         const indexLastDot = latestTag.lastIndexOf('.');
         const before = latestTag.slice(0, indexLastDot);
         const after = latestTag.slice(indexLastDot + 1);
-        return `${before}.${after + 1}`;
+        return `${before}.${parseInt(after) + 1}`;
     }
     return releaseVersion;
 }
@@ -11456,6 +11455,7 @@ function run() {
                     // Will contain all info to create the release files
                     const releaseObjects = [];
                     // Loop over all widgets
+                    console.log('BUILDING WIDGETS');
                     for (const packageFolder of packageWidgetFolders) {
                         console.log(`Building widget ${packageFolder.name}`);
                         // Builds a helper object with all paths that we will need
@@ -11472,14 +11472,15 @@ function run() {
                         yield runBuildCommand(widgetStructure);
                         releaseObjects.push({ github: action_github, widgetStructure, jsonVersion });
                     }
+                    console.log('CREATING RELEASE');
                     const tagName = yield getTagName(action_github, github.context);
-                    console.log(`New tag name: ${tagName}`);
+                    console.log('New tag name:', tagName);
                     const release = yield createRelease(action_github, github.context, tagName);
                     if (!release) {
                         return action_core.error('No Release Found');
                     }
                     // Upload all mpk's to release
-                    console.log(`Upload all widget files to release`);
+                    console.log(`UPLOADING MPKS`);
                     releaseObjects.forEach((widget) => action_awaiter(this, void 0, void 0, function* () { return yield uploadBuildFolderToRelease(Object.assign(Object.assign({}, widget), { release })); }));
                 }
             }

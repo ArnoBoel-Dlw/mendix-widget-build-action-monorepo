@@ -26,10 +26,8 @@ export async function getTagName(github, context) {
     });
 
     if (data?.length) {
-      console.log(`Releases response:`, data);
-
       const latestRelease = data.reduce((a, b) => (a.created_at > b.created_at ? a : b));
-      console.log(`Latest release: ${latestRelease}`);
+      console.log(`Latest release:`, latestRelease);
 
       return getNewTag(latestRelease?.tag_name);
     }
@@ -49,7 +47,7 @@ export function getNewTag(latestTag) {
     const before = latestTag.slice(0, indexLastDot);
     const after = latestTag.slice(indexLastDot + 1);
 
-    return `${before}.${after + 1}`;
+    return `${before}.${parseInt(after) + 1}`;
   }
 
   return releaseVersion;

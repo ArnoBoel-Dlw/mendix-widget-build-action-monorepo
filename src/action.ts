@@ -44,6 +44,7 @@ async function run() {
         // Will contain all info to create the release files
         const releaseObjects = [];
         // Loop over all widgets
+        console.log('BUILDING WIDGETS');
         for (const packageFolder of packageWidgetFolders) {
           console.log(`Building widget ${packageFolder.name}`);
           // Builds a helper object with all paths that we will need
@@ -66,8 +67,9 @@ async function run() {
           releaseObjects.push({ github, widgetStructure, jsonVersion });
         }
 
+        console.log('CREATING RELEASE');
         const tagName = await getTagName(github, context);
-        console.log(`New tag name: ${tagName}`);
+        console.log('New tag name:', tagName);
 
         const release = await createRelease(github, context, tagName);
 
@@ -76,7 +78,7 @@ async function run() {
         }
 
         // Upload all mpk's to release
-        console.log(`Upload all widget files to release`);
+        console.log(`UPLOADING MPKS`);
 
         releaseObjects.forEach(
           async (widget) => await uploadBuildFolderToRelease({ ...widget, release })
