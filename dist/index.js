@@ -11114,13 +11114,8 @@ var external_fs_ = __nccwpck_require__(5747);
 var github = __nccwpck_require__(5438);
 ;// CONCATENATED MODULE: ./src/constants.ts
 const core = __nccwpck_require__(2186);
-const COMMIT_MESSAGE_TO_TRIGGER_WIDGET_BUILD = core.getInput('commit_message_trigger') || 'publish new Package';
-const FOLDER_OF_PACKAGES = core.getInput('packages_folder') || 'packages';
 const IDENTIFY_WIDGETS_FOLDERS = core.getInput('identify_widgets_folders') || '-widgets';
 const RELEASE_VERSION = core.getInput('release_version');
-const TRIGGER_COMMITS = {
-    WIDGET: COMMIT_MESSAGE_TO_TRIGGER_WIDGET_BUILD,
-};
 const FOLDERS_WHERE_MENDIX_WIDGETS_ARE = IDENTIFY_WIDGETS_FOLDERS;
 const PACKAGES_PATH = `${process.env.GITHUB_WORKSPACE}`;
 const baseDir = process.env.GITHUB_WORKSPACE;
