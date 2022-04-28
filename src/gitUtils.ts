@@ -46,8 +46,6 @@ function majorOrMinorVersionUpdate(latestTag) {
 
   const lastTagParts = splitAndStrip(latestTag);
   const actionVersionParts = splitAndStrip(releaseVersion);
-  console.log('Last tag parts', lastTagParts);
-  console.log('Action version parts', actionVersionParts);
 
   return lastTagParts.some((part, index) => part !== actionVersionParts[index]);
 }
