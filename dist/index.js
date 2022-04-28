@@ -11294,10 +11294,8 @@ function getTagName(github, context) {
                 repo,
             });
             if (data === null || data === void 0 ? void 0 : data.length) {
-                console.log(`Releases response: ${data}`);
-                const maxDate = new Date(Math.max(...data.map((e) => new Date(e.created_at))));
-                console.log(`Max date: ${maxDate}`);
-                const latestRelease = data.find((r) => new Date(r.created_at) === maxDate);
+                console.log(`Releases response:`, data);
+                const latestRelease = data.reduce((a, b) => (a.created_at > b.created_at ? a : b));
                 console.log(`Latest release: ${latestRelease}`);
                 if (latestRelease === null || latestRelease === void 0 ? void 0 : latestRelease.tag_name) {
                     return getNewTag(latestRelease.tag_name);
@@ -11312,6 +11310,7 @@ function getTagName(github, context) {
     });
 }
 function getNewTag(latestTag) {
+    console.log(`Get new tag: ${latestTag}`);
     if (latestTag) {
         // TODO: check if major or minor update
         // Else => patch update
@@ -11443,49 +11442,54 @@ function run() {
     return action_awaiter(this, void 0, void 0, function* () {
         console.log(`Running action on path ${PACKAGES_PATH}`);
         /**
-         *  Loop Through All Packages.
+         *  Loop through all packages.
          */
         let packagesToBuild = [];
         // Sees if PackageFolder is Dir
         if (external_fs_.lstatSync(PACKAGES_PATH).isDirectory()) {
-            // Reads All Folder in /packages
+            // Reads all folders in /packages
             const packagesFolders = yield _readFileAsync(PACKAGES_PATH);
             for (const packageSub of packagesFolders) {
                 console.log(`Checking subpath ${packageSub.name}`);
-                // if folder has Widgets in and not utils
+                // check if folder contains Widgets
                 if (packageSub.name.includes(FOLDERS_WHERE_MENDIX_WIDGETS_ARE)) {
                     const PACKAGE_PATH = `${process.env.GITHUB_WORKSPACE}/${packageSub.name}`;
                     console.log(`Subpath ${PACKAGE_PATH} is valid`);
-                    // Reads all Folders in a Folder that ends with FOLDERS_WHERE_MENDIX_WIDGETS_ARE
+                    // Reads all folders in a folder that ends with FOLDERS_WHERE_MENDIX_WIDGETS_ARE
                     const packageWidgetFolders = yield _readFileAsync(PACKAGE_PATH);
+                    // Will contain all info to create the release files
                     const releaseObjects = [];
-                    // Loop Over All Widgets (Now Assume We are in Widgets Folder)
+                    // Loop over all widgets
                     for (const packageFolder of packageWidgetFolders) {
-                        console.log(`Checking widget ${packageFolder.name}`);
-                        // Builds a Helper Object with All the Paths we will need
+                        console.log(`Building widget ${packageFolder.name}`);
+                        // Builds a helper object with all paths that we will need
                         const widgetStructure = _widgetFolderStructure(packageSub.name, packageFolder.name);
-                        // Reads Package.json
+                        // Reads package.json
                         const packageJSON = yield _readPackageJSON(widgetStructure);
-                        // Gets Version in Package.json
+                        // Gets version in package.json
                         const jsonVersion = packageJSON.version;
-                        // Build widget           console.log(`Build widget`);
-                        // Push Package Name To Build Array Keep
+                        // Push package name to build array
                         packagesToBuild.push(widgetStructure);
                         // Should not be needed for YARN but this installs all NPM modules from this path
                         yield runInstallCommand(widgetStructure);
-                        // Build New Version
+                        // Build new version
                         yield runBuildCommand(widgetStructure);
                         releaseObjects.push({ github: action_github, widgetStructure, jsonVersion });
                     }
                     const tagName = yield getTagName(action_github, github.context);
                     console.log(`New tag name: ${tagName}`);
-                    const release = yield createRelease(action_github, github.context, tagName);
-                    if (!release) {
-                        return action_core.error('No Release Found');
+                    if (tagName) {
+                        const release = yield createRelease(action_github, github.context, tagName);
+                        if (!release) {
+                            return action_core.error('No Release Found');
+                        }
+                        // Upload all mpk's to release
+                        console.log(`Upload all widget files to release`);
+                        releaseObjects.forEach((widget) => action_awaiter(this, void 0, void 0, function* () { return yield uploadBuildFolderToRelease(Object.assign(Object.assign({}, widget), { release })); }));
                     }
-                    // Upload all mpk's to release
-                    console.log(`Upload all widget files to release`);
-                    releaseObjects.forEach((widget) => action_awaiter(this, void 0, void 0, function* () { return yield uploadBuildFolderToRelease(Object.assign(Object.assign({}, widget), { release })); }));
+                    else {
+                        return action_core.error('No tagname found');
+                    }
                 }
             }
         }

@@ -26,11 +26,11 @@ export async function getTagName(github, context) {
     });
 
     if (data?.length) {
-      console.log(`Releases response: ${data}`);
-      const maxDate = new Date(Math.max(...data.map((e) => new Date(e.created_at))));
-      console.log(`Max date: ${maxDate}`);
-      const latestRelease = data.find((r) => new Date(r.created_at) === maxDate);
+      console.log(`Releases response:`, data);
+
+      const latestRelease = data.reduce((a, b) => (a.created_at > b.created_at ? a : b));
       console.log(`Latest release: ${latestRelease}`);
+
       if (latestRelease?.tag_name) {
         return getNewTag(latestRelease.tag_name);
       }
@@ -44,6 +44,7 @@ export async function getTagName(github, context) {
 }
 
 export function getNewTag(latestTag) {
+  console.log(`Get new tag: ${latestTag}`);
   if (latestTag) {
     // TODO: check if major or minor update
 
