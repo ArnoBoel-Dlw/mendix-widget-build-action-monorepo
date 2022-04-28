@@ -11297,11 +11297,7 @@ function getTagName(github, context) {
                 console.log(`Releases response:`, data);
                 const latestRelease = data.reduce((a, b) => (a.created_at > b.created_at ? a : b));
                 console.log(`Latest release: ${latestRelease}`);
-                if (latestRelease === null || latestRelease === void 0 ? void 0 : latestRelease.tag_name) {
-                    return getNewTag(latestRelease.tag_name);
-                }
-                gitUtils_core.error(`Error @ getLatestTag`);
-                return undefined;
+                return getNewTag(latestRelease === null || latestRelease === void 0 ? void 0 : latestRelease.tag_name);
             }
         }
         catch (error) {
@@ -11478,18 +11474,13 @@ function run() {
                     }
                     const tagName = yield getTagName(action_github, github.context);
                     console.log(`New tag name: ${tagName}`);
-                    if (tagName) {
-                        const release = yield createRelease(action_github, github.context, tagName);
-                        if (!release) {
-                            return action_core.error('No Release Found');
-                        }
-                        // Upload all mpk's to release
-                        console.log(`Upload all widget files to release`);
-                        releaseObjects.forEach((widget) => action_awaiter(this, void 0, void 0, function* () { return yield uploadBuildFolderToRelease(Object.assign(Object.assign({}, widget), { release })); }));
+                    const release = yield createRelease(action_github, github.context, tagName);
+                    if (!release) {
+                        return action_core.error('No Release Found');
                     }
-                    else {
-                        return action_core.error('No tagname found');
-                    }
+                    // Upload all mpk's to release
+                    console.log(`Upload all widget files to release`);
+                    releaseObjects.forEach((widget) => action_awaiter(this, void 0, void 0, function* () { return yield uploadBuildFolderToRelease(Object.assign(Object.assign({}, widget), { release })); }));
                 }
             }
         }

@@ -31,12 +31,7 @@ export async function getTagName(github, context) {
       const latestRelease = data.reduce((a, b) => (a.created_at > b.created_at ? a : b));
       console.log(`Latest release: ${latestRelease}`);
 
-      if (latestRelease?.tag_name) {
-        return getNewTag(latestRelease.tag_name);
-      }
-
-      core.error(`Error @ getLatestTag`);
-      return undefined;
+      return getNewTag(latestRelease?.tag_name);
     }
   } catch (error) {
     core.error(`Error @ getLatestTag ${error}`);

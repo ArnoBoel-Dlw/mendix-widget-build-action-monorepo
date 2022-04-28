@@ -67,23 +67,20 @@ async function run() {
         }
 
         const tagName = await getTagName(github, context);
-
         console.log(`New tag name: ${tagName}`);
-        if (tagName) {
-          const release = await createRelease(github, context, tagName);
-          if (!release) {
-            return core.error('No Release Found');
-          }
 
-          // Upload all mpk's to release
-          console.log(`Upload all widget files to release`);
+        const release = await createRelease(github, context, tagName);
 
-          releaseObjects.forEach(
-            async (widget) => await uploadBuildFolderToRelease({ ...widget, release })
-          );
-        } else {
-          return core.error('No tagname found');
+        if (!release) {
+          return core.error('No Release Found');
         }
+
+        // Upload all mpk's to release
+        console.log(`Upload all widget files to release`);
+
+        releaseObjects.forEach(
+          async (widget) => await uploadBuildFolderToRelease({ ...widget, release })
+        );
       }
     }
   }
