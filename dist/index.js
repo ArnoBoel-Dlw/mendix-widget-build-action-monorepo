@@ -11303,10 +11303,25 @@ function getTagName(github, context) {
         }
     });
 }
+function majorOrMinorVersionUpdate(latestTag) {
+    const splitAndStrip = (str) => {
+        const parts = str.split('.');
+        const major = parts[0].replace(/\D/g, '');
+        const minor = parts[1];
+        return [major, minor];
+    };
+    const lastTagParts = splitAndStrip(latestTag);
+    const actionVersionParts = splitAndStrip(releaseVersion);
+    console.log('Last tag parts', lastTagParts);
+    console.log('Action version parts', actionVersionParts);
+    return lastTagParts.some((part, index) => part !== actionVersionParts[index]);
+}
 function getNewTag(latestTag) {
     console.log(`Latest tag: ${latestTag}`);
     if (latestTag) {
-        // TODO: check if major or minor update
+        if (majorOrMinorVersionUpdate(latestTag)) {
+            return releaseVersion;
+        }
         // Else => patch update
         const indexLastDot = latestTag.lastIndexOf('.');
         const before = latestTag.slice(0, indexLastDot);
