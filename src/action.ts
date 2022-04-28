@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import simpleGit from 'simple-git';
 import { getOctokit, context } from '@actions/github';
 import { FOLDERS_WHERE_MENDIX_WIDGETS_ARE, PACKAGES_PATH } from './constants';
 
