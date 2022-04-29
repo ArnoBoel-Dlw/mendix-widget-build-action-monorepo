@@ -51,11 +51,11 @@ When the pr is merged the action will do the following things:
 
 - Runs `npm build` and builds the package
 
-- Gets all Tags on the Repo in Github
+- Gets all tags on the repo in Github
 
 - Searches the most recent tag and checks if there are no major/minor version updates
- - No major/minor update => patch incremented with 1
- - Major/minor update => use the user defined version from the action.yml file  
+  - No major/minor update => patch incremented with 1
+  - Major/minor update => use the user defined version from the action.yml file 
 
 - Creates a release with the new tag
 
