@@ -64,14 +64,16 @@ async function run() {
           try {
             await runInstallCommand(widgetStructure);
           } catch (error) {
-            return core.error('Error installing packages', error);
+            core.error('Error installing packages', error);
+            return core.setFailed(error);
           }
 
           // Build new version
           try {
             await runBuildCommand(widgetStructure);
           } catch (error) {
-            return core.error('Error building widget', error);
+            core.error('Error building widget', error);
+            return core.setFailed(error);
           }
 
           releaseObjects.push({ github, widgetStructure, jsonVersion });

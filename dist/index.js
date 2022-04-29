@@ -11472,14 +11472,16 @@ function run() {
                             yield runInstallCommand(widgetStructure);
                         }
                         catch (error) {
-                            return action_core.error('Error installing packages', error);
+                            action_core.error('Error installing packages', error);
+                            return action_core.setFailed(error);
                         }
                         // Build new version
                         try {
                             yield runBuildCommand(widgetStructure);
                         }
                         catch (error) {
-                            return action_core.error('Error building widget', error);
+                            action_core.error('Error building widget', error);
+                            return action_core.setFailed(error);
                         }
                         releaseObjects.push({ github: action_github, widgetStructure, jsonVersion });
                     }
