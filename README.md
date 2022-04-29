@@ -5,8 +5,9 @@ This action builds all widgets found in the predefined widget folder. Then it cr
 
 An example of the action.yml file:
 
-name: Publish packages on changed
 
+```yml
+name: Publish packages on changed
 on:
   push:
     branches:
@@ -23,6 +24,8 @@ jobs:
           author_name: app-services-release-bot
           identify_widgets_folders: -widgets
           release_version: v0.1.0
+```
+
 
 ## How it works
 
