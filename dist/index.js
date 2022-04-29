@@ -11145,25 +11145,20 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 const filesystemUtils_core = __nccwpck_require__(2186);
 function _readPackageJSON(widgetStructure) {
     return __awaiter(this, void 0, void 0, function* () {
-        const rawPackageJSON = yield external_fs_.readFileSync(external_path_.resolve(widgetStructure.packageJSON), "utf8");
+        const rawPackageJSON = yield external_fs_.readFileSync(external_path_.resolve(widgetStructure.packageJSON), 'utf8');
         const parsedPackageJSON = JSON.parse(rawPackageJSON);
         return parsedPackageJSON;
     });
 }
 function runBuildCommand(widgetStructure) {
     return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const { stdout } = yield spawn_async_default()("npm", [
-                "run",
-                "build",
-                "--prefix",
-                widgetStructure.base,
-            ]);
-            return stdout;
-        }
-        catch (error) {
-            console.log(`error`, error);
-        }
+        const { stdout } = yield spawn_async_default()('npm', [
+            'run',
+            'build',
+            '--prefix',
+            widgetStructure.base,
+        ]);
+        return stdout;
     });
 }
 function _readFileAsync(packagesPath) {
@@ -11176,7 +11171,7 @@ function _readFileAsync(packagesPath) {
 }
 function _readPackageXML(widgetStructure) {
     return __awaiter(this, void 0, void 0, function* () {
-        const rawPackageXML = yield fs.readFileSync(path.resolve(widgetStructure.packageXML), "utf8");
+        const rawPackageXML = yield fs.readFileSync(path.resolve(widgetStructure.packageXML), 'utf8');
         var options = { ignoreComment: true, alwaysChildren: true };
         var result = convertXML.xml2js(rawPackageXML, options);
         return result;
@@ -11197,24 +11192,18 @@ function _writePackageXML(widgetStructure, rawNewPackageXML) {
 }
 function runInstallCommand(widgetStructure) {
     return __awaiter(this, void 0, void 0, function* () {
-        try {
-            // This Should Not Be an Issue with YARN
-            const { stdout } = yield spawn_async_default()("npm", [
-                "install",
-                "--prefix",
-                widgetStructure.base,
-            ]);
-            return stdout;
-        }
-        catch (error) {
-            filesystemUtils_core.error(`Error @ runInstallCommand ${error}`);
-        }
+        const { stdout } = yield spawn_async_default()('npm', [
+            'install',
+            '--prefix',
+            widgetStructure.base,
+        ]);
+        return stdout;
     });
 }
 function findBuildFiles(folderPath) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const filesArray = yield external_fs_.readdirSync(external_path_.resolve(folderPath), "utf8");
+            const filesArray = yield external_fs_.readdirSync(external_path_.resolve(folderPath), 'utf8');
             return filesArray;
         }
         catch (error) {
@@ -11312,8 +11301,6 @@ function majorOrMinorVersionUpdate(latestTag) {
     };
     const lastTagParts = splitAndStrip(latestTag);
     const actionVersionParts = splitAndStrip(releaseVersion);
-    console.log('Last tag parts', lastTagParts);
-    console.log('Action version parts', actionVersionParts);
     return lastTagParts.some((part, index) => part !== actionVersionParts[index]);
 }
 function getNewTag(latestTag) {
@@ -11480,10 +11467,20 @@ function run() {
                         const jsonVersion = packageJSON.version;
                         // Push package name to build array
                         packagesToBuild.push(widgetStructure);
-                        // Should not be needed for YARN but this installs all NPM modules from this path
-                        yield runInstallCommand(widgetStructure);
+                        // Install packages
+                        try {
+                            yield runInstallCommand(widgetStructure);
+                        }
+                        catch (error) {
+                            return action_core.error('Error installing packages', error);
+                        }
                         // Build new version
-                        yield runBuildCommand(widgetStructure);
+                        try {
+                            yield runBuildCommand(widgetStructure);
+                        }
+                        catch (error) {
+                            return action_core.error('Error building widget', error);
+                        }
                         releaseObjects.push({ github: action_github, widgetStructure, jsonVersion });
                     }
                     console.log('CREATING RELEASE');

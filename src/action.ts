@@ -59,10 +59,20 @@ async function run() {
 
           // Push package name to build array
           packagesToBuild.push(widgetStructure);
-          // Should not be needed for YARN but this installs all NPM modules from this path
-          await runInstallCommand(widgetStructure);
+
+          // Install packages
+          try {
+            await runInstallCommand(widgetStructure);
+          } catch (error) {
+            return core.error('Error installing packages', error);
+          }
+
           // Build new version
-          await runBuildCommand(widgetStructure);
+          try {
+            await runBuildCommand(widgetStructure);
+          } catch (error) {
+            return core.error('Error building widget', error);
+          }
 
           releaseObjects.push({ github, widgetStructure, jsonVersion });
         }
