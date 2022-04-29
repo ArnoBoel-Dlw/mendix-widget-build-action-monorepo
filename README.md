@@ -1,5 +1,8 @@
+# Build Mendix widgets and release the mpk's
+
 ## Features
-This action builds all widgets found in the predefined widget folder. Then it creates a release and adds all the builded files to this release.
+- Build and release all widgets in the monorepo
+- Define a custom version (for major/minor updates) or let the action decide the new version tag
 
 ## Usage
 
@@ -26,6 +29,11 @@ jobs:
           release_version: v0.1.0
 ```
 
+#### Creating a major/minor version update
+To set the new tag to a new major/minor update you can update the *release_version* in the action.yml file.
+
+**WARNING**
+The version tag needs to be unique. The user needs to define a version that does not yet exist or the action won't be able to cerate a release.
 
 ## How it works
 
@@ -35,6 +43,8 @@ When the pr is merged the action will do the following things:
 - Build all widgets
 - Push a tag to the repo `vx.y.z` where z is incremented based on the last tag if no major or minor version change defined in the action.yml
 - Place all mpk files of the widgets in the newly created release
+
+
 
 ### Internal steps
 
