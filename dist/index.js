@@ -11172,14 +11172,21 @@ function _readFileAsync(packagesPath) {
 function _readPackageXML(widgetStructure) {
     return __awaiter(this, void 0, void 0, function* () {
         const rawPackageXML = yield fs.readFileSync(path.resolve(widgetStructure.packageXML), 'utf8');
-        var options = { ignoreComment: true, alwaysChildren: true };
+        var options = {
+            ignoreComment: true,
+            alwaysChildren: true,
+        };
         var result = convertXML.xml2js(rawPackageXML, options);
         return result;
     });
 }
 function _writePackageXML(widgetStructure, rawNewPackageXML) {
     return __awaiter(this, void 0, void 0, function* () {
-        const options = { compact: false, ignoreComment: true, spaces: 4 };
+        const options = {
+            compact: false,
+            ignoreComment: true,
+            spaces: 4,
+        };
         const result = yield convertXML.js2xml(rawNewPackageXML, options);
         try {
             yield fs.writeFileSync(widgetStructure.packageXML, result);
@@ -11194,6 +11201,17 @@ function runInstallCommand(widgetStructure) {
     return __awaiter(this, void 0, void 0, function* () {
         const { stdout } = yield spawn_async_default()('npm', [
             'install',
+            '--prefix',
+            widgetStructure.base,
+        ]);
+        return stdout;
+    });
+}
+function runInstallPeerDepsCommand(widgetStructure) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { stdout } = yield spawn_async_default()('npm', [
+            'install',
+            '--legacy-peer-deps',
             '--prefix',
             widgetStructure.base,
         ]);
@@ -11472,8 +11490,13 @@ function run() {
                             yield runInstallCommand(widgetStructure);
                         }
                         catch (error) {
-                            action_core.error('Error installing packages', error);
-                            return action_core.setFailed(error);
+                            try {
+                                runInstallPeerDepsCommand(widgetStructure);
+                            }
+                            catch (error) {
+                                action_core.error('Error installing packages', error);
+                                return action_core.setFailed(error);
+                            }
                         }
                         // Build new version
                         try {
@@ -11483,7 +11506,11 @@ function run() {
                             action_core.error('Error building widget', error);
                             return action_core.setFailed(error);
                         }
-                        releaseObjects.push({ github: action_github, widgetStructure, jsonVersion });
+                        releaseObjects.push({
+                            github: action_github,
+                            widgetStructure,
+                            jsonVersion,
+                        });
                     }
                     console.log('CREATING RELEASE');
                     const tagName = yield getTagName(action_github, github.context);
@@ -11494,7 +11521,9 @@ function run() {
                     }
                     // Upload all mpk's to release
                     console.log(`UPLOADING MPKS`);
-                    releaseObjects.forEach((widget) => action_awaiter(this, void 0, void 0, function* () { return yield uploadBuildFolderToRelease(Object.assign(Object.assign({}, widget), { release })); }));
+                    releaseObjects.forEach((widget) => action_awaiter(this, void 0, void 0, function* () {
+                        return yield uploadBuildFolderToRelease(Object.assign(Object.assign({}, widget), { release }));
+                    }));
                 }
             }
         }

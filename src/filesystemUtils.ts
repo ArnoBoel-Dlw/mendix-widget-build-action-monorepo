@@ -7,7 +7,9 @@ const core = require('@actions/core');
 
 import { WidgetFolderStructureInterface } from './constants';
 
-export async function _readPackageJSON(widgetStructure: WidgetFolderStructureInterface) {
+export async function _readPackageJSON(
+  widgetStructure: WidgetFolderStructureInterface
+) {
   const rawPackageJSON = await fs.readFileSync(
     path.resolve(widgetStructure.packageJSON),
     'utf8'
@@ -16,7 +18,9 @@ export async function _readPackageJSON(widgetStructure: WidgetFolderStructureInt
   return parsedPackageJSON;
 }
 
-export async function runBuildCommand(widgetStructure: WidgetFolderStructureInterface) {
+export async function runBuildCommand(
+  widgetStructure: WidgetFolderStructureInterface
+) {
   const { stdout } = await spawnAsync('npm', [
     'run',
     'build',
@@ -34,32 +38,51 @@ export async function _readFileAsync(packagesPath: string) {
   return foldersArray;
 }
 
-export async function _readPackageXML(widgetStructure: WidgetFolderStructureInterface) {
+export async function _readPackageXML(
+  widgetStructure: WidgetFolderStructureInterface
+) {
   const rawPackageXML = await fs.readFileSync(
     path.resolve(widgetStructure.packageXML),
     'utf8'
   );
-  var options = { ignoreComment: true, alwaysChildren: true };
+  var options = {
+    ignoreComment: true,
+    alwaysChildren: true,
+  };
   var result = convertXML.xml2js(rawPackageXML, options);
   return result;
 }
 
 export async function _writePackageXML(
   widgetStructure: WidgetFolderStructureInterface,
-  rawNewPackageXML: convertXML.Element | convertXML.ElementCompact
+  rawNewPackageXML:
+    | convertXML.Element
+    | convertXML.ElementCompact
 ) {
-  const options = { compact: false, ignoreComment: true, spaces: 4 };
-  const result = await convertXML.js2xml(rawNewPackageXML, options);
+  const options = {
+    compact: false,
+    ignoreComment: true,
+    spaces: 4,
+  };
+  const result = await convertXML.js2xml(
+    rawNewPackageXML,
+    options
+  );
 
   try {
-    await fs.writeFileSync(widgetStructure.packageXML, result);
+    await fs.writeFileSync(
+      widgetStructure.packageXML,
+      result
+    );
     return;
   } catch (error) {
     core.error(`Error @ _writePackageXML ${error}`);
   }
 }
 
-export async function runInstallCommand(widgetStructure: WidgetFolderStructureInterface) {
+export async function runInstallCommand(
+  widgetStructure: WidgetFolderStructureInterface
+) {
   const { stdout } = await spawnAsync('npm', [
     'install',
     '--prefix',
@@ -69,9 +92,25 @@ export async function runInstallCommand(widgetStructure: WidgetFolderStructureIn
   return stdout;
 }
 
+export async function runInstallPeerDepsCommand(
+  widgetStructure: WidgetFolderStructureInterface
+) {
+  const { stdout } = await spawnAsync('npm', [
+    'install',
+    '--legacy-peer-deps',
+    '--prefix',
+    widgetStructure.base,
+  ]);
+
+  return stdout;
+}
+
 export async function findBuildFiles(folderPath: string) {
   try {
-    const filesArray = await fs.readdirSync(path.resolve(folderPath), 'utf8');
+    const filesArray = await fs.readdirSync(
+      path.resolve(folderPath),
+      'utf8'
+    );
     return filesArray;
   } catch (error) {
     core.error(`Error @ findBuildFiles ${error}`);
