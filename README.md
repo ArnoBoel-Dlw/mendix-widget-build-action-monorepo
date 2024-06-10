@@ -1,40 +1,26 @@
-# Build Mendix widgets and release the mpk's
+# Build a Mendix widgets and release the mpk
 
 ## Features
 
-- Build and release all widgets in the monorepo
-- Define a custom version (for major/minor updates) or let the action decide the new version tag
+- Build the widget in the given folder
+- **COMING SOON**: automatic release of the mpk to sharepoint
 
 ## Usage
 
-An example of the action.yml file:
+An example of the publish job in the `action.yml` file:
 
 ```yml
-name: Publish packages on changed
-on:
-  push:
-    branches:
-      - main
-
-jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: VercammenG/mendix-widget-build-action-monorepo@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          author_name: app-services-release-bot
-          identify_widgets_folders: -widgets
-          release_version: v0.1.0
+      - uses: actions/checkout@v4
+      - uses: ArnoBoel-Dlw/mendix-widget-build-action-monorepo@main
+       with:
+          widget-folder: ${{ widget-folder }}
 ```
 
-#### Creating a major/minor version update
-
-To set the new tag to a new major/minor update you can update the _release_version_ in the action.yml file.
-
-**WARNING**
-The version tag needs to be unique. The user needs to define a version that does not yet exist or the action won't be able to create a release.
+For this to work you would first need a job that determines all folders with widgets that have changed.
+Then you would loop over all the folders and run this action for each folder that contains an updated widget.
 
 ## How it works
 
@@ -42,33 +28,22 @@ You build or patch your widget, locally you lint and test it. If you are happy t
 
 When the pr is merged the action will do the following things:
 
-- Build all widgets
-- Push a tag to the repo `vx.y.z` where z is incremented based on the last tag if no major or minor version change defined in the action.yml
-- Place all mpk files of the widgets in the newly created release
+- Run npm install
+- Run npm run build to build the widget
+- **COMING SOON**: publish mpk on sharepoint
 
 ### Internal steps
 
 ---
 
-- Loop over all folders in `packages_folder` and search the folder containing the Mendix widgets (check if the folder name contains `identify_widgets_folders`)
+1. Builds a helper object with all paths it will need
 
-- Builds a helper object with all paths it will need
+2. Reads the package's `package.json`
 
-- Reads the package's `package.json`
+3. Saves package name and version
 
-  - Saves package name and version
+4. Runs `npm install`
 
-- Runs `npm install`
+5. Runs `npm run build` and builds the package
 
-- Runs `npm build` and builds the package
-
-- Gets all tags on the repo in Github
-
-- Searches the most recent tag and checks if there are no major/minor version updates
-
-  - No major/minor update => patch incremented with 1
-  - Major/minor update => use the user defined version from the action.yml file
-
-- Creates a release with the new tag
-
-- Uploads everything in the build folders to the release
+6. **COMING SOON**: Publish mpk file to sharepoint
