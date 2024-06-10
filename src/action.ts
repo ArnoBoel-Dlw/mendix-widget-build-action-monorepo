@@ -1,38 +1,99 @@
+import { context } from '@actions/github';
 import * as fs from 'fs';
-import { getOctokit, context } from '@actions/github';
 import {
   FOLDERS_WHERE_MENDIX_WIDGETS_ARE,
   PACKAGES_PATH,
+  WIDGET_FOLDER,
+  WIDGET_FOLDER_PATH,
 } from './constants';
 
 import {
   createRelease,
-  uploadBuildFolderToRelease,
   getTagName,
+  uploadBuildFolderToRelease,
 } from './gitUtils';
 
 import {
-  _readPackageJSON,
-  runBuildCommand,
   _readFileAsync,
+  _readPackageJSON,
+  findBuildFiles,
+  runBuildCommand,
   runInstallCommand,
-  _readPackageXML,
-  _writePackageXML,
   runInstallPeerDepsCommand,
 } from './filesystemUtils';
 
 import {
   _widgetFolderStructure,
-  _xmlVersion,
-  _changeXMLVersion,
+  getWidgetFolderStructure,
 } from './utils';
 
 const core = require('@actions/core');
 
-const GITHUB_TOKEN = core.getInput('GITHUB_TOKEN');
-const github = getOctokit(
-  process.env.GITHUB_TOKEN || GITHUB_TOKEN
-);
+// const GITHUB_TOKEN = core.getInput('GITHUB_TOKEN');
+// const github = getOctokit(
+//   process.env.GITHUB_TOKEN || GITHUB_TOKEN
+// );
+
+// TODO
+// 1. Get the folder for the widget to build as action input
+// 2. Build that specific widget
+// 3. Publish it to sharepoint
+
+async function buildWidget() {
+  console.log('******* ACTION INPUTS *******');
+  console.log(`Running action on path ${PACKAGES_PATH}`);
+  console.log(
+    `Building widget in folder ${{ WIDGET_FOLDER }}`
+  );
+  console.log(
+    `Building widget in path ${{ WIDGET_FOLDER_PATH }}`
+  );
+
+  // Builds a helper object with all paths that we will need
+  const widgetFolderStructure = getWidgetFolderStructure();
+  console.log(
+    `Widget folder structure: ${widgetFolderStructure}`
+  );
+  // Reads package.json
+  const packageJSON = await _readPackageJSON(
+    widgetFolderStructure
+  );
+  // Gets version in package.json
+  const jsonVersion = packageJSON.version;
+  console.log(`Version in package.json: ${jsonVersion}`);
+
+  console.log('******* INSTALLING PACKAGES *******');
+  // Install packages
+  try {
+    await runInstallCommand(widgetFolderStructure);
+  } catch (error) {
+    try {
+      runInstallPeerDepsCommand(widgetFolderStructure);
+    } catch (error) {
+      core.error('Error installing packages', error);
+      return core.setFailed(error);
+    }
+  }
+
+  console.log('******* BUILDING WIDGET *******');
+  // Build new version
+  try {
+    await runBuildCommand(widgetFolderStructure);
+  } catch (error) {
+    core.error('Error building widget', error);
+    return core.setFailed(error);
+  }
+
+  console.log('******* RELEASE WIDGET *******');
+  // Release package (in our case this will be a deploy to sharepoint)
+  const FOLDER_WHERE_RELEASE_IS = `${widgetFolderStructure.build}/${jsonVersion}`;
+  const filesArray = await findBuildFiles(
+    FOLDER_WHERE_RELEASE_IS
+  );
+  console.log(`Files to release: ${filesArray}`);
+
+  console.log('TODO: release widget');
+}
 
 async function run() {
   console.log(`Running action on path ${PACKAGES_PATH}`);
@@ -145,4 +206,6 @@ async function run() {
   }
 }
 
-run();
+// run();
+
+buildWidget();

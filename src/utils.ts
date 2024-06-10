@@ -1,9 +1,13 @@
-import * as fs from "fs";
-import * as convertXML from "xml-js";
-import mime from "mime-types";
-import {basename} from "path";
+import * as fs from 'fs';
+import mime from 'mime-types';
+import { basename } from 'path';
+import * as convertXML from 'xml-js';
 
-import {PACKAGES_PATH, WidgetFolderStructureInterface} from "./constants";
+import {
+  PACKAGES_PATH,
+  WIDGET_FOLDER_PATH,
+  WidgetFolderStructureInterface,
+} from './constants';
 
 //  Currently Working for MX8 and MX9 widget Structures
 export function _widgetFolderStructure(
@@ -16,6 +20,16 @@ export function _widgetFolderStructure(
     build: `${PACKAGES_PATH}/${folderName}/${packageName}/dist`,
     packageJSON: `${PACKAGES_PATH}/${folderName}/${packageName}/package.json`,
     packageXML: `${PACKAGES_PATH}/${folderName}/${packageName}/src/package.xml`,
+  };
+}
+
+export function getWidgetFolderStructure(): WidgetFolderStructureInterface {
+  return {
+    base: `${WIDGET_FOLDER_PATH}/`,
+    src: `${WIDGET_FOLDER_PATH}/src`,
+    build: `${WIDGET_FOLDER_PATH}/dist`,
+    packageJSON: `${WIDGET_FOLDER_PATH}/package.json`,
+    packageXML: `${WIDGET_FOLDER_PATH}/src/package.xml`,
   };
 }
 
@@ -38,6 +52,6 @@ export const assetData = (path: string) => {
   return {
     fileStream: fs.readFileSync(path),
     name: basename(path),
-    contentType: mime.lookup(path) || "application/zip",
+    contentType: mime.lookup(path) || 'application/zip',
   };
 };

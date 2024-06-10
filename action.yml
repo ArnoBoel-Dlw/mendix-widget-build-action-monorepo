@@ -1,19 +1,10 @@
-name: 'Action to build Mendix Widgets in Lerna monorepo'
-description: 'Build all widgets and publish mpks in release'
+name: 'build-and-publish-mendix-widget'
+description: 'Build a custom Mendix widget and publish it on Sharepoint'
 author: 'Arno Boel'
 
 inputs:
-  GITHUB_TOKEN:
-    description: 'GitHub token'
-    required: true
-  author_name:
-    description: 'Git Author Name'
-    required: false
-  identify_widgets_folders:
-    description: 'identify_widgets_folders'
-    required: false
-  release_version:
-    description: 'release_version'
+  widget-folder:
+    description: 'Folder where the widget to build is located'
     required: true
 
 runs:
