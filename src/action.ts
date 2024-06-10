@@ -28,13 +28,12 @@ async function buildWidget() {
 
   // Builds a helper object with all paths that we will need
   const widgetFolderStructure = getWidgetFolderStructure();
-  console.log(
-    `Widget folder structure: ${widgetFolderStructure}`
-  );
+
   // Reads package.json
   const packageJSON = await readPackageJSON(
     widgetFolderStructure
   );
+
   // Gets version in package.json
   const jsonVersion = packageJSON.version;
   console.log(`Version in package.json: ${jsonVersion}`);
@@ -62,7 +61,7 @@ async function buildWidget() {
   }
 
   console.log('******* RELEASE WIDGET *******');
-  // Release package (in our case this will be a deploy to sharepoint)
+  // Release widget (in our case this will be a deploy to sharepoint)
   const FOLDER_WHERE_RELEASE_IS = `${widgetFolderStructure.build}/${jsonVersion}`;
   const buildFiles = await findBuildFiles(
     FOLDER_WHERE_RELEASE_IS
